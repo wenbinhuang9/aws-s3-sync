@@ -8,7 +8,14 @@ URL = "https://{0}.blob.core.windows.net/{1}".format(STORAGE_NAME, BUCKETNAME)
 
 SAS = "?sv=2019-12-12&ss=b&srt=sco&sp=rwdlacx&se=2020-12-07T13:08:45Z&st=2020-11-25T05:08:45Z&spr=https,http&sig=m7pT%2FtnVL9rtq62oeANGGIygAQZVMYB6IzgW12%2F5kvw%3D"
 
+def ls():
+    command = "azcopy list '{0}/{1}'".format(URL, SAS)
+    with os.popen(command) as f:
+        return f.read()
+    
+    return ""
 def sync(filename):
+    
     if path.isfile(filename):
         _syncFile(filename)
     else:
@@ -24,7 +31,7 @@ def preprocessingTargetFileName(fileName):
 
 def genSyncFileCommand(filename):
     target = preprocessingTargetFileName(filename)
-    command = "azcopy copy {0} {1}{2}".format(filename, target, SAS) 
+    command = "azcopy copy {0} '{1}{2}'".format(filename, target, SAS) 
 
     return command
 
@@ -43,7 +50,7 @@ def genDirFileCommand(dir):
     
     source = dir
     dest = URL + "/" + target
-    command  = "azcopy sync {0} {1}{2}".format(source, dest, SAS)
+    command  = "azcopy sync {0} '{1}{2}'".format(source, dest, SAS)
 
     return command 
 
@@ -69,21 +76,22 @@ def executeCommand(command):
     return
 
 def rm(filename):
-    if path.isdir(filename):
-        print("does not support directory deletion")
-        return
     
-    _rmFile(filename)
+    if path.isdir(filename):
+        _rmFile(filename, True)
+    
+    _rmFile(filename, False)
  
 def genrmCommand(filename):
     target = preprocessingTargetFileName(filename)
 
-    command = "azcopy rm {0}{1}".format(target, SAS)
+    command = "azcopy rm '{0}{1}'".format(target, SAS)
 
     return command 
-def _rmFile(filename):
+def _rmFile(filename, isRecursive):
     command = genrmCommand(filename)
-
+    if(isRecursive):
+        command += " --recursive=true"
     executeCommand(command)
 
 

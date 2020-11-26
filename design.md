@@ -23,14 +23,36 @@ Make it easy to build a static website very simple
 
 ## Interface design
 
+todo how to design interface here 
+### sync to cloud 
+
+### sync from cloud 
+
+### rm in the cloud 
+
+
 ### Command line interface 
 
-s3 sync ./ 
+syncer cp  ./ s3
 
-s3 rm ./ 
+syncer cp ./image azure 
+
+syncer cp azure  ./
+
+syncer cp s3 ./ 
+
+syncer rm  s3 ./image 
+
+syncer ls s3
+
+syncer ls azure 
+
 
 ### GUI ? 
 
 
+## Reference document 
 
+[azure blob storage interface](https://docs.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy-remove?toc=/azure/storage/blobs/toc.json)
 
+[aws s3 interface ]()

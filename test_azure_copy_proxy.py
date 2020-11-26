@@ -7,11 +7,19 @@ BASE_URL = "https://spencer2.blob.core.windows.net/spencer-file-sync"
 SAS = azure_blob_proxy.SAS
 
 class TestAzureBlogStorageProxy(unittest.TestCase):
+
+    def ls(self):
+        command = "azcopy list '{0}/{1}'".format(BASE_URL, SAS)
+        with os.popen(command) as f:
+            return f.read()
+        
+        return ""
+
     def test_sync_file_command(self):
         filename = "./world.txt"
         command = azure_blob_proxy.genSyncFileCommand(filename)
 
-        correctCommand = "azcopy copy {0} https://spencer2.blob.core.windows.net/spencer-file-sync/world.txt{1}"
+        correctCommand = "azcopy copy {0} 'https://spencer2.blob.core.windows.net/spencer-file-sync/world.txt{1}'"
 
         self.assertEqual(command, correctCommand.format(filename, SAS))
 
@@ -27,13 +35,13 @@ class TestAzureBlogStorageProxy(unittest.TestCase):
 
         command = azure_blob_proxy.genSyncFileCommand(filename)
         
-        correctCommand = "azcopy copy {0} https://spencer2.blob.core.windows.net/spencer-file-sync/src/world.txt{1}"
+        correctCommand = "azcopy copy {0} 'https://spencer2.blob.core.windows.net/spencer-file-sync/src/world.txt{1}'"
 
         self.assertEqual(command, correctCommand.format(filename, SAS))
 
     def test_sync_dir_command(self):
         dir = "./image"
-        template = "azcopy sync {0} https://spencer2.blob.core.windows.net/spencer-file-sync/{1}{2}"
+        template = "azcopy sync {0} 'https://spencer2.blob.core.windows.net/spencer-file-sync/{1}{2}'"
 
         correctResult = template.format(dir, dir[2:], SAS)
 
@@ -45,41 +53,39 @@ class TestAzureBlogStorageProxy(unittest.TestCase):
         rmFilename = "./image/scene1.png"
 
         
-        template = "azcopy rm {0}/{1}{2}".format(BASE_URL, rmFilename[2:], SAS)
+        template = "azcopy rm '{0}/{1}{2}'".format(BASE_URL, rmFilename[2:], SAS)
 
         command = azure_blob_proxy.genrmCommand(rmFilename)
         print("rm file command is:" + command)
         self.assertEqual(template, command)
 
     def test_sync_file_and_rm_file(self):
+        
+        ## todo test with rm file 
+
+
         dir = "./testfile"
 
         azure_blob_proxy.sync(dir)
 
-        # with os.popen("aws s3 ls spencer.file.sync/testfile/") as f :
-        #     result = f.read()
+        listResult = self.ls()
 
-        #     print(result)
-        #     self.assertTrue("hello.txt"  in result) 
-        #     self.assertTrue("world.txt" in result)
+        shouldInlcude = ["testfile/hello.txt", "testfile/world.txt", "testfile/src/hello.txt", "testfile/src/world.txt"]
 
-        # filename = "./testfile/hello.txt"
+        self.assertTrue(all((iterm in listResult) for iterm in shouldInlcude))
 
-        # azure_blob_proxy.rm(filename)
-        # with os.popen("aws s3 ls spencer.file.sync/testfile/") as f :
-        #     result = f.read()
-
-        #     print(result)
-        #     self.assertTrue("hello.txt" not in result)
-
-        # azure_blob_proxy.sync(filename)
+        azure_blob_proxy.rm(dir)
+        listResult = self.ls()
+        self.assertTrue(all((iterm not in listResult) for iterm in shouldInlcude))
         
-        # with os.popen("aws s3 ls spencer.file.sync/testfile/") as f :
-        #     result = f.read()
+        filename = "./testfile/hello.txt"
 
-        #     print(result)
-        #     self.assertTrue("hello.txt" in result)
+        azure_blob_proxy.sync(filename)
+        listResult = self.ls()
+        shouldInlcude = ["testfile/hello.txt"]
 
+        self.assertTrue(all((iterm in listResult) for iterm in shouldInlcude))
+ 
 
     # def test_sync_from_s3(self):
     #     dir = "./"

@@ -1,11 +1,15 @@
 import os 
 from os import path
 
-## finish the code today 
-## and then test tomorrow , also introduce azure blob storage 
-## and then google cloud platform 
-## finally try a static website using this .
 BUCKETNAME = 'spencer.file.sync'
+
+def ls():
+    with os.popen("aws s3 ls {0}".format(BUCKETNAME)) as f :
+        result = f.read()
+        return result
+
+    return ""
+
 def sync(filename):
     if path.isfile(filename):
         _syncFile(filename)
@@ -64,19 +68,22 @@ def executeCommand(command):
 
 def rm(filename):
     if path.isdir(filename):
-        print("does not support directory deletion")
+        _rmFile(filename, True)
         return
     
-    _rmFile(filename)
+    _rmFile(filename, False)
  
-def genrmCommand(filename):
+def genrmCommand(filename, isRecursive):
     target = preprocessingTargetFileName(filename)
 
     command = "aws s3 rm  {0}".format(target)
 
+    if isRecursive:
+        command += " --recursive"
     return command 
-def _rmFile(filename):
-    command = genrmCommand(filename)
+
+def _rmFile(filename, isRecursive):
+    command = genrmCommand(filename, isRecursive)
 
     executeCommand(command)
 
