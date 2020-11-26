@@ -33,20 +33,28 @@ todo how to design interface here
 
 ### Command line interface 
 
+```shell
 syncer cp  ./ s3
 
-syncer cp ./image azure 
+syncer cp ./image az
 
-syncer cp azure  ./
+syncer cp az  ./
 
 syncer cp s3 ./ 
-
+```
+```
 syncer rm  s3 ./image 
-
+```
+```
 syncer ls s3
 
 syncer ls azure 
+```
 
+```
+syncer mkcon s3/S3_Container
+syncer mkcon az/AZ_Container
+```
 
 ### GUI ? 
 

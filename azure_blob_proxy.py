@@ -60,7 +60,7 @@ def _syncDir(dir):
     executeCommand(command)
 
 def genSyncDirFromS3Command(dir):
-    command = "aws s3 sync s3://{0} {1}".format(BUCKETNAME, dir)
+    command = "azcopy sync '{0}{1}' {2}".format(URL, SAS, dir)
 
     return command
 
