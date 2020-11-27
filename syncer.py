@@ -1,13 +1,10 @@
-
-
 import sys 
 import os 
-
 import azure_blob_proxy
-
 import s3_proxy
+import google_drive_proxy 
 
-SUPPORTED_CLOUD = ["s3", "az"]
+SUPPORTED_CLOUD = ["s3", "az", "gd"]
 
 def copyFromCloud(cloud, dir):
     if cloud not in SUPPORTED_CLOUD:
@@ -64,6 +61,8 @@ def ls(cloud):
     elif cloud == "az":
         result = azure_blob_proxy.ls()
         print(result)
+    elif cloud == "gd":
+        result = google_drive_proxy.ls()
     else:
         raise Exception("unsupported cloud")
 
