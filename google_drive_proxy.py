@@ -4,38 +4,54 @@ from os import path
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-BUCKETNAME = 'spencer.file.sync'
+import google_drive_auth
 
+from os import walk
+DRIVE = google_drive_auth.auth()
 
-## todo my target is to authenticate only for once 
-## todo how to do with google drive authentication??? 
-gauth = GoogleAuth()
-# Try to load saved client credentials
-gauth.LoadCredentialsFile("mycreds.txt")
-if gauth.credentials is None:
-    # Authenticate if they're not there
-    gauth.LocalWebserverAuth()
-elif gauth.access_token_expired:
-    # Refresh them if expired
-    gauth.Refresh()
-else:
-    # Initialize the saved creds
-    gauth.Authorize()
-# Save the current credentials to a file
-gauth.SaveCredentialsFile("mycreds.txt")
-
-DRIVE = GoogleDrive(gauth)
 
 
 def ls():
     global DRIVE
-
     file_list = DRIVE.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
     for file1 in file_list:
         print('title: %s, id: %s' % (file1['title'], file1['id']))
     
     return ""
-    
+
+def create_folder(folder_name,parent_folder_id = ""):
+    file_metadata = {
+        'title':folder_name,
+        'name' : folder_name,
+        #   'parents' : [folder_id],
+       'mimeType' : 'application/vnd.google-apps.folder'
+    }
+    if parent_folder_id != "":
+      file_metadata = {
+        'title':folder_name,
+        'name' : folder_name,
+        'parents' : [parent_folder_id],
+       'mimeType' : 'application/vnd.google-apps.folder'
+    }      
+
+    file = DRIVE.CreateFile(file_metadata)
+
+    result = file.Upload()
+
+
+
+# output map, key is folder name, value is folder id
+def queryFolder():
+    result = {}
+    file_list =DRIVE.ListFile({'q': "'root' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'"}).GetList()
+    for file1 in file_list:
+        title = file1['title']
+        id = file1['id']
+        result[title] = id 
+
+    return result 
+
+
 def sync(filename):
     if path.isfile(filename):
         _syncFile(filename)
@@ -55,13 +71,33 @@ def genSyncFileCommand(filename):
     command = "aws s3 cp {0} {1}".format(filename, target) 
 
     return command
-def _syncFile(filename):
+
+##exampel input: ./image/1.png , output: 1.png
+def getFileName(filename):
+    if "/" not in filename:
+        return filename
+
+    l = filename.split("/")
+
+    return l[-1]
+def _syncFile(filename, parentId = ""):
     if(DRIVE == None):
         authDrive()
 
+    singleFileName = getFileName(filename)
 
-    file1 = DRIVE.CreateFile({'title': filename})
-    path = "./" + filename
+    fileMetaData = {'title': singleFileName}
+
+    if parentId != "":
+        fileMetaData = {'title': singleFileName, 'parents' : [{"kind": "drive#fileLink","id": parentId}] }
+    print(fileMetaData)
+    file1 = DRIVE.CreateFile(fileMetaData)
+
+    if "./" not in filename:
+        path = "./" + filename
+    else:
+        path = filename
+        
     file1.SetContentFile(path)
     file1.Upload()
 
@@ -78,10 +114,41 @@ def genDirFileCommand(dir):
 
     return command 
 
-def _syncDir(dir):
-    command = genDirFileCommand(dir)
+def _getAllFileNames(dir):
+    f = []
+    for (dirpath, dirnames, filenames) in walk(dir):
+        f.extend(filenames)
 
-    executeCommand(command)
+    return f
+
+def getDirName(dir):
+    if "/" not in dir :
+        return dir
+
+    dir_split = dir.split("/")
+    if len(dir_split) > 2:
+        raise Exception("unsupported two depth nested directory when using google drive")
+
+    return dir_split[1]
+
+def _syncDir(dir):
+    
+    filenameList = _getAllFileNames(dir)
+
+    clear_dir = getDirName(dir)
+
+    gdriveDir = queryFolder()
+
+    if clear_dir not in gdriveDir:
+        create_folder(clear_dir)
+        gdriveDir = queryFolder() 
+    
+    clearDirID = gdriveDir[clear_dir]
+    if not clearDirID:
+        raise Exception("can not get dir:%s id in google drive" % clear_dir)
+    for filename in filenameList:
+        fullFilePath = dir + "/" + filename
+        _syncFile(fullFilePath, clearDirID)
 
 def genSyncDirFromS3Command(dir):
     command = "aws s3 sync s3://{0} {1}".format(BUCKETNAME, dir)

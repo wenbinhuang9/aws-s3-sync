@@ -25,6 +25,8 @@ def copyToCloud(cloud, dir):
         s3_proxy.sync(dir) 
     elif cloud == "az":
         azure_blob_proxy.sync(dir)
+    elif cloud == "gd":
+        google_drive_proxy.sync(dir)
     else:
         raise Exception("unsupported cloud")
     
