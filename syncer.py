@@ -3,6 +3,9 @@ import os
 import azure_blob_proxy
 import s3_proxy
 import google_drive_proxy 
+import s3_auth
+import google_drive_auth
+import azure_auth
 
 GDRIVE = "gdrive"
 SUPPORTED_CLOUD = ["s3", "az", GDRIVE]
@@ -59,6 +62,22 @@ def startswithCloud(dir):
     
     return False
 
+
+def login(cloud):
+    if cloud not in SUPPORTED_CLOUD:
+        raise Exception("unsupported cloud")
+
+    if cloud == "s3":
+        s3_auth.auth()
+    elif cloud == "az":
+        azure_auth.auth()
+    elif cloud == "gdrive":
+        google_drive_auth.auth()
+    else:
+        raise Exception("unsupported cloud")
+
+
+
 ## how to manage file name in google cloud ? 
 def cp(source, dest):
     if startswithCloud(source):
@@ -66,7 +85,6 @@ def cp(source, dest):
     else:
         copyToCloud(dest, source)
  
-## todo implement it here 
 def ls(cloud):
     if cloud not in SUPPORTED_CLOUD:
         raise Exception("unsupported cloud")
@@ -118,6 +136,11 @@ def main(argv):
         cloud = argv[2]
         ls(cloud)
 
+    elif command == "login":
+        if len(argv) < 3:
+            raise Exception("please input cloud name")
+        cloud = argv[2]
+        login(cloud)
     else:
         raise Exception("unsupported command")
     return

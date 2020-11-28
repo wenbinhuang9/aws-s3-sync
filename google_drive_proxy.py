@@ -6,7 +6,6 @@ from pydrive.drive import GoogleDrive
 import google_drive_auth
 from os import walk
 
-
 DRIVE = google_drive_auth.auth()
 
 def ls():
