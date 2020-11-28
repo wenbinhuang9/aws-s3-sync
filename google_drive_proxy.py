@@ -3,13 +3,11 @@ from os import path
 
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-
 import google_drive_auth
-
 from os import walk
+
+
 DRIVE = google_drive_auth.auth()
-
-
 
 def ls():
     global DRIVE
@@ -41,9 +39,13 @@ def create_folder(folder_name,parent_folder_id = ""):
 
 
 # output map, key is folder name, value is folder id
-def queryFolder():
+def queryFolder(folderId =""):
+
+    queryId = folderId if folderId != "" else "root"
+
+    ## todo make success here
     result = {}
-    file_list =DRIVE.ListFile({'q': "'root' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'"}).GetList()
+    file_list =DRIVE.ListFile({'q': "'%s' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'" % queryId}).GetList()
     for file1 in file_list:
         title = file1['title']
         id = file1['id']
@@ -51,12 +53,22 @@ def queryFolder():
 
     return result 
 
+# output map, key is folder name, value is folder id
+def queryFileList(folderId =""):
 
-def sync(filename):
-    if path.isfile(filename):
-        _syncFile(filename)
+    queryId = folderId if folderId != "" else "root"
+
+    ## todo make success here
+    result = {}
+    file_list =DRIVE.ListFile({'q': "'%s' in parents and trashed=false" % queryId}).GetList()
+
+    return file_list
+
+def sync(source, destFolderId = ""):
+    if path.isfile(source):
+        _syncFile(source, destFolderId)
     else:
-        _syncDir(filename)
+        _syncDir(source, destFolderId)
 
 def preprocessingTargetFileName(fileName):
     target = fileName
@@ -93,12 +105,8 @@ def _syncFile(filename, parentId = ""):
     print(fileMetaData)
     file1 = DRIVE.CreateFile(fileMetaData)
 
-    if "./" not in filename:
-        path = "./" + filename
-    else:
-        path = filename
-        
-    file1.SetContentFile(path)
+
+    file1.SetContentFile(filename)
     file1.Upload()
 
 
@@ -131,9 +139,14 @@ def getDirName(dir):
 
     return dir_split[1]
 
-def _syncDir(dir):
-    
+def _syncDir(dir, destId=""):
     filenameList = _getAllFileNames(dir)
+    if destId != "":
+        for filename in filenameList:
+            fullFilePath = dir + "/" + filename
+            _syncFile(fullFilePath, destId)
+
+        return
 
     clear_dir = getDirName(dir)
 
@@ -155,36 +168,45 @@ def genSyncDirFromS3Command(dir):
 
     return command
 
-def syncDirFromS3(dir):
-    command = genSyncDirFromS3Command(dir)
-    executeCommand(command)
 
 
-def executeCommand(command):
-    with os.popen(command) as f:
-        result = f.read()
-        print(result)
-    return
+## todo finish this part here 
+def syncDirFromS3(source, dest):
 
-def rm(filename):
-    if path.isdir(filename):
-        _rmFile(filename, True)
-        return
-    
-    _rmFile(filename, False)
- 
-def genrmCommand(filename, isRecursive):
-    target = preprocessingTargetFileName(filename)
+    gfile = DRIVE.CreateFile({'id':source})
+    gfile.FetchMetadata() 
 
-    command = "aws s3 rm  {0}".format(target)
+    if isDir(gfile):
+        if  not os.path.exists(dest):
+            os.mkdir(dest)
 
-    if isRecursive:
-        command += " --recursive"
-    return command 
+        subFileList = queryFileList(source)
+        for subFile in subFileList:
+            title = subFile['title']
+            curFileDest = os.path.join(dest, title)
 
-def _rmFile(filename, isRecursive):
-    command = genrmCommand(filename, isRecursive)
-
-    executeCommand(command)
+            _syncFileFromCloud(subFile, curFileDest)
+    else:
+        _syncFileFromCloud(gfile, dest) 
 
 
+def isDir(gfile):
+    mimeType = gfile['mimeType']
+
+    return mimeType == 'application/vnd.google-apps.folder'
+
+
+def _syncFileFromCloud(gfile, dest):
+    filename = gfile['title']
+    if os.path.isdir(dest):
+        dest = os.path.join(dest, filename)
+
+    gfile.GetContentFile(dest)
+
+
+def rm(fileId):
+    file1 = DRIVE.CreateFile({'id': fileId})
+
+    file1.Trash()
+
+    print("rm done of id %s" % fileId)

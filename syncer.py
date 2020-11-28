@@ -4,9 +4,11 @@ import azure_blob_proxy
 import s3_proxy
 import google_drive_proxy 
 
-SUPPORTED_CLOUD = ["s3", "az", "gd"]
+GDRIVE = "gdrive"
+SUPPORTED_CLOUD = ["s3", "az", GDRIVE]
 
-def copyFromCloud(cloud, dir):
+def copyFromCloud(source, dir):
+    cloud, cloudDir = parseCloudDirectory(source)
     if cloud not in SUPPORTED_CLOUD:
         raise Exception("unsupported cloud")
 
@@ -14,6 +16,9 @@ def copyFromCloud(cloud, dir):
         s3_proxy.syncDirFromS3(dir) 
     elif cloud == "az":
         azure_blob_proxy.syncDirFromS3(dir) 
+    elif cloud == GDRIVE:
+        ## todo finish rest of code here 
+        google_drive_proxy.syncDirFromS3(cloudDir, dir);
     else:
         raise Exception("unsupported cloud")
  
@@ -25,7 +30,7 @@ def copyToCloud(cloud, dir):
         s3_proxy.sync(dir) 
     elif cloud == "az":
         azure_blob_proxy.sync(dir)
-    elif cloud == "gd":
+    elif cloud == "gdrive":
         google_drive_proxy.sync(dir)
     else:
         raise Exception("unsupported cloud")
@@ -40,16 +45,25 @@ def rm(cloud, file):
         s3_proxy.rm(file) 
     elif cloud == "az":
         azure_blob_proxy.rm(file)
-
+    elif cloud == "gdrive":
+        google_drive_proxy.rm(file)
     else:
         raise Exception("unsupported cloud")
 
 
+
+def startswithCloud(dir):
+    for cloud in SUPPORTED_CLOUD:
+        if dir.startswith(cloud):
+            return True
+    
+    return False
+
+## how to manage file name in google cloud ? 
 def cp(source, dest):
-    if source in SUPPORTED_CLOUD:
+    if startswithCloud(source):
         copyFromCloud(source, dest)
     else:
-        
         copyToCloud(dest, source)
  
 ## todo implement it here 
@@ -63,7 +77,7 @@ def ls(cloud):
     elif cloud == "az":
         result = azure_blob_proxy.ls()
         print(result)
-    elif cloud == "gd":
+    elif cloud == "gdrive":
         result = google_drive_proxy.ls()
     else:
         raise Exception("unsupported cloud")
