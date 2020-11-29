@@ -1,10 +1,12 @@
 
 ```mermaid
 graph TD;
-    CommandLineInterface-->StorageProxy;
+    CommandLineInterface-->Proxy;
     CommandLineInterface-->Authentcation;
     Authentcation-->AWS_IAM 
-    Authentcation-->Azure_Active_Directory;
-    StorageProxy-->S3;
-    StorageProxy-->Azure_Blob_Storage
+    Authentcation-->AzureActiveDirectory;
+    Authentcation-->GoogleDriveIAM
+    Proxy-->S3;
+    Proxy-->AzureBlobStorage
+    Proxy-->GoogleDrive
 ```

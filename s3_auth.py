@@ -20,6 +20,7 @@ def auth():
     if s3_bucket.strip() != "":
         s3_configure.set(s3_configure.AWS_S3_BUCKET_CONST, s3_bucket)
 
+    print("Login Completed")
 
 def _update_to_aws_configuration(key, value):
     command = "aws configure set {0} {1}".format(key, value)

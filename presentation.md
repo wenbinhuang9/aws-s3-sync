@@ -9,67 +9,113 @@ marp: true
     h2 {
         text-align:center; 
     }
+        h3 {
+        text-align:center; 
+    }
     body{
         font-size:20px;
     }
 
 </style>
 
-# Project: A Local File System Sync to Cloud Storage 
+# Syncer
+
+<style>
+    h4 {
+        text-align: center
+    }
+</style>
+
+## A Tool for Local File BackUp Leveraging Multiple Cloud Storages
 
 
-## Group Member: Wenbin Huang 
+<br>
+<br>
 
-## NetID: vx3255 
+####  Group Member: Wenbin Huang 
 
-## Course: Cloud Computing
+#### NetID: vx3255 
+
+#### Course: Cloud Computing
 
 ---
 
 # What is the problem 
 
-- Our local file system may have important documents, it is necessary to backup it in a convenient way. 
-- Further, we can leverage cloud storage with other cloud services to provide personal blog services simply based on local file system. 
+<br>
+<br>
+
+
+- **Document Loss**:  document may loss if we don't backup
+  <br>
+- **High Cost**: It takes money to buy and maintain hardware drives for backup, and hardware drive is unstable with time going.
+  
+  <br>
+- **Learning Curve** is high if we want to use multiple cloud storage such as Google Drive, AWS S3, Azure Blog Storage etc. 
+  
+   
 
 ---
 
-# How to address the problem 
+# How to Address the Problem 
 
-- We can leverage multiple cloud platforms to provide storage functionality for local file system such as AWS S3, Azure Blob Storage.
+- **Backup**: Leveraging multiple cloud storage for backup 
+<br>
+- **Clouds are Cheap**: Clouds provide limited free storage and are cheap if we need more   
 
+<br>
 
-- And we also need authentication services, so we can use authentication service from AWS IAM and Azure Active Directory 
-
-
-
-- We can also provide static blog service based on AWS S3  
-
+- **Simple and Unified API to Reduce Learning Curve**: The API for backup is simple and compatible with **Unix File Operation Command Line**
 
 ---
+<style>
+    h2 {
+        text-align: left
+    }
+</style>
 
 # My Contribution 
-- Lead the project 
-- Research on the AWS S3, Boto3 API for S3, AWS AMI service, Azure Blob Storage and Azure active direcotry service 
-- Coding and testing 
 
+## Searching:
+- search the storage service provided by Google Drive, Azure and AWS 
+- How to use cloud IAM to implement authentication
+- How to use API to access cloud storage
 
----
+## Coding 
+- Develop proxy, authentication, API and configuration module 
 
-# Cloud Services Used in the project 
-
-- AWS S3 used for local file system backup storage 
-- AWS IAM used for authentication service to access S3
-- Azure Blob Storage used for local file system back up storage 
-- Azure activec directory used for authentication service to access Azure Blob Storage. 
+## Testing
+- Code full unittests 
 
 ---
-# Programming languages Used in the project 
 
-- Base on Python 3.0 
-- Provide commandline interface for simple use
-- Using Boto3 API provided by AWS to access S3.
-- Using Python Unittest framework to test the function. 
+# Cloud Services Used
 
+<br>
+
+- AWS S3 and IAM 
+<br>
+- Azure Blob Storage and IAM
+<br>
+- Google Drive and IAM 
+<br>
+
+---
+# Languages and Libraries Used 
+
+- Python 3.0 and Python Unittest Framework
+
+<br>
+
+- **AWS CLI API** to access  S3 
+
+<br>
+
+- **Azure azcopy API** to access Azure Blob Storage
+
+  <br>
+
+- **PyDrive API** to access Google Drive  
 ---
 
 # Architecture 
@@ -80,53 +126,100 @@ marp: true
 
 
 ---
-
 # Development Method: Test Driven Development
 
-- Based on Python UnitTest framework to provide full unit test .
+**Python unittest** to provide full unit test .
 
+Unit Test Code Demo  
 
-The following is one of unit test case . 
-
+Run Unit Test Command: python3 test_azure_copy_proxy.py
 ```python
-    def test_sync_dir_command(self):
-        dir = "./image"
-        template = "aws s3 sync {0} s3://spencer.file.sync/{1}"
+import os 
+import unittest
+import syncer
+class TestSyncer(unittest.TestCase):
 
-        result = template.format(dir, dir[2:])
+    def test_parse_cloud_dir(self):
+        cloudDir = "s3"
+        cloud, dir = syncer.parseCloudDirectory(cloudDir) 
 
-        command = s3_proxy.genDirFileCommand(dir)
+        self.assertTrue(cloud == "s3")
+        self.assertTrue(dir == "./")
 
-        print(command)
+if __name__ == '__main__':
+    unittest.main()
 
-        self.assertEqual(command, result)
 ```
 
 
 ---
-# Demo Show 
-- Synchronize a local direcory to S3
+# Google Drive BackUp Demo Show
+Authtication
 ```
-
+syncer login gdrive
 ```
-- Synchronize a single file to S3 
+List file list under Google Drive Root Directory
 ```
+syncer ls gdrive
 ```
-- Delete a single file from S3
+Backup a directory 
 ```
+syncer cp ./testfile gdrive
 ```
-- BackUp directory from S3 to local file system 
+Delete a directory  
 ```
-```
-- A Static Blob Deployment based on my project tool 
-```
+syncer cp ./testfile gdrive
+syncer rm gdrive/{fileid}
 ```
 ---
+
+# AWS S3 BackUp Demo Show
+Authtication
+```
+syncer login s3
+```
+List file list under S3 Root Directory
+```
+syncer ls s3
+```
+Backup a directory 
+```
+syncer cp ./testfile s3
+```
+Copy from cloud to local  
+```
+syncer cp s3/folder ./
+```
+---
+# Azure Blob Storage Demo Show
+Authtication
+```
+azcopy login --tenant-id=19a46ac2-a14b-4dfa-bce3-93965c21f4cf
+syncer login az 
+```
+List file list under S3 Root Directory
+```
+syncer ls az 
+```
+Backup a directory 
+```
+syncer cp ./testfile az
+```
+Copy from cloud to local  
+```
+syncer cp s3/testfile ./
+```
+--- 
 
 # Future Improvements 
 
-- Security: add encryption and decryption function to provide confidentiality.
-- Support more cloud or application platforms such as Google Cloud Platform,  Google Drive and Dropbox. 
+<br>
+
+- **Confidentiality**: Using encrypted algorithms like AES .
+<br>
+- **Cross Platform**: Make Tool supported under Windows 
+  <br>
+- **More Cloud Storage**: Support More Cloud Storage such as dropbox, Baidu Drive
 
 
 ---

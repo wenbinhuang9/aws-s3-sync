@@ -2,8 +2,6 @@ import unittest
 
 from key_val_text_parser import KVTestParser
 class TestKeyValParser(unittest.TestCase):
-
-
     def test_parser(self):
         fileName = "./test_config"
         kvDb = KVTestParser(fileName)

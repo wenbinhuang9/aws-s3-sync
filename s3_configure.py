@@ -7,7 +7,7 @@ CONG_FILE_NAME = "~/.syncer/s3_config"
 AWS_S3_BUCKET_CONST = "aws_s3_bucket"
 
 
-config_dir = "~/.syncer"
+config_dir = "./.syncer"
 configfile = os.path.join(config_dir, "s3_config")
 def set(key, value):
     if not os.path.exists(config_dir):
