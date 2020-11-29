@@ -38,6 +38,8 @@ marp: true
 
 #### Course: Cloud Computing
 
+#### Github Link for Project: https://github.com/wenbinhuang9/syncer
+
 ---
 
 # What is the problem 
