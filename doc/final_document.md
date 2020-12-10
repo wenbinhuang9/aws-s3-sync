@@ -7,7 +7,7 @@ NetID: vx3255
 
 Course: CS623 Cloud Computing 
 
-Source Code in Github: https://github.com/wenbinhuang9/syncer
+Source Code in Github: [https://github.com/wenbinhuang9/syncer](https://github.com/wenbinhuang9/syncer)
 
 # Introduction 
 
@@ -39,41 +39,29 @@ Proxy encapsulates functionality from different cloud storages, providing unifie
 
 Each cloud has its own authentication way, so I have to encapsulates Authentication Module to provide unified APIs for Commandline Interface Module to authenticate different cloud storages. 
 
-## Orchestration Model 
-
-
-## Flow Diagram
+## Orchestration Model and Flow Diagram
 
 ![](image/archestration_model_small.png)
 
-The above picture is the Orchestration Model to use Syncer tool, we just need to authenticate the cloud storage in advance, and then we can use 
+The above picture is the Orchestration Model to use Syncer tool, we just need to authenticate the cloud storage and then we can use commandline interfaces to operate on the cloud. 
 
 
 # Source Code 
 
 Project is managed by the github, check the following link to view the code. 
 
-Github: https://github.com/wenbinhuang9/syncer
+Github: [https://github.com/wenbinhuang9/syncer](https://github.com/wenbinhuang9/syncer)
+
+## Code Structure 
+![](image/code_structure.png)
+
+The above picture shows the code structure, where syncer.py is the entrance for the code. 
 
 # Database Model and Diagram
 
+The following picture shows the project database model. Local file system either backup data to cloud or copy data from cloud. 
+![](image/database_model_small.png)
 
-
-# Clouds and Technologies Used 
-
-## Cloud used 
-1. AWS S3 and IAM 
-2. Azure Blob Storage and IAM
-3. Google Drive and IAM 
-   
-## Programming Languages 
-
-- Python 3.0 and Python Unittest Framework
-
-## Libraries Used 
-1. **AWS CLI** to access  S3 
-2. **Azure azcopy CLI** to access Azure Blob Storage
-3. **PyDrive API** to access Google Drive  
 
 # CommandLine Interfaces 
 
@@ -108,19 +96,61 @@ syncer rm s3/hello.txt
 syncer rm az/world.txt 
 ```
 
+# Clouds and Technologies Used 
+
+## Cloud used 
+1. AWS S3 and IAM 
+2. Azure Blob Storage and IAM
+3. Google Drive and IAM 
+   
+## Programming Languages 
+
+- Python 3.0 and Python Unittest Framework
+
+## Libraries Used 
+1. **AWS CLI** to access  S3 
+2. **Azure azcopy CLI** to access Azure Blob Storage
+3. **PyDrive API** to access Google Drive  
+
+
 # Environment Required and Deployment 
 
 ## Environment and Libraries Required
 - OS: OSX(Apple MAC)
 - Python3.0 
-- 
+- [azcopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy-copy) 
+- [Pydrive](https://github.com/googleworkspace/PyDrive)
+- [aws-cli](https://github.com/aws/aws-cli)
 
 
-## Deployment 
+## Deployment Instructions
+
+1. Install [brew](https://docs.brew.sh/Installation)
+2. Install azcopy : `brew install azcopy`
+3. Install aws cli: `brew install aws-cli`
+4. Install Pydrive: `pip3 install PyDrive`
+
 
 ## Authentication Configuration 
+### AWS IAM Configuration 
+
+1. Go to IAM to create user binding with Policy AmazonS3FullAccess
+2. Go to user summary page, click `Security credentials` , then click `create access key`
+3. Execute `syncer login s3` , and then input accees key, access secrets and S3 bucket name. 
+
+### Azure IAM Configuration 
+
+1. [Find your tenant-id in Azure](https://stackoverflow.com/questions/26384034/how-to-get-the-azure-account-tenant-id) 
+2. Execute `azcopy login --tenant-id={your tenant-id}`
+3. [Create Azure Blog Storage SAS Token](https://adamtheautomator.com/azure-sas-token/)
+4. Execute `syncer login az`, input your sas token here  
+
+### Google Drive  Configuration 
+
+1. [Click to view how to configure authentication for Google drive](https://pythonhosted.org/PyDrive/quickstart.html) 
+2. Download the client-secrets.json file and rename to client-secrets.json, then copy to directory same as syncer. 
+3. Execute `syncer login gdrive` 
 
 
 # Conclusion 
-
-In this project , I have provided a simple API to back up local file to cloud storage. The future direction is to provide flexible authentication, to support more cloud storages and also to consider encryption for security. 
+In this project , I have provided a simple API to back up local file to cloud storage. Currently , the authentication API is not that friendly, so I will research to find a better authentication way and provide a better authentication API. Other future directions are to support more cloud storages and also to consider encryption for security. 

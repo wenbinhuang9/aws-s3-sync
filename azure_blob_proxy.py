@@ -6,7 +6,7 @@ BUCKETNAME = 'spencer-file-sync'
 
 URL = "https://{0}.blob.core.windows.net/{1}".format(STORAGE_NAME, BUCKETNAME)
 
-SAS = "?sv=2019-12-12&ss=b&srt=sco&sp=rwdlacx&se=2020-12-07T13:08:45Z&st=2020-11-25T05:08:45Z&spr=https,http&sig=m7pT%2FtnVL9rtq62oeANGGIygAQZVMYB6IzgW12%2F5kvw%3D"
+SAS = ""
 
 def ls():
     command = "azcopy list '{0}/{1}'".format(URL, SAS)
